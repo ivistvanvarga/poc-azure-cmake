@@ -56,6 +56,21 @@ SDK bites:
   `cmake/libcurl.cmake` fails the configure step with a hint when they are missing.
 - The SDK sets `CMAKE_CXX_STANDARD 14` for itself. This project uses C++17, both work.
 
+## The nlohmann/json dependency
+
+`cmake/nlohmann-json.cmake` fetches the header only library from source. It has one gotcha:
+
+- The switch that turns the unit tests of nlohmann/json on is called `JSON_BuildTests`, **not**
+  `BUILD_TESTING`. The library never looks at `BUILD_TESTING`, so the switch that keeps the Azure
+  SDK from building its test suites does not stop it. With the tests on, the build fails with
+  `fatal error: test_data.hpp: No such file or directory`, because the suite includes
+  `<test_data.hpp>` from a directory that is not on the include path outside of the upstream
+  project layout, and the file is only filled by the `download_test_data` target.
+  `JSON_BuildTests` is therefore forced to `OFF` in `cmake/nlohmann-json.cmake`.
+- A build tree that was configured with the tests on keeps the test registrations of that run,
+  CMake does not remove them when the subdirectory is dropped. `ctest` would keep trying to run
+  binaries that are not built any more. `cmake/nlohmann-json.cmake` deletes the leftovers.
+
 ## Azure SDK API details that cost time
 
 - `DateTime` lives in namespace `Azure`, not `Azure::Core`, and `DateFormat` is nested in it:
