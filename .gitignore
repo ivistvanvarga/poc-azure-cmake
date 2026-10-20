@@ -1,0 +1,13 @@
+# Build directories
+build/
+build-*/
+_deps/
+*.o
+*.a
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+compile_commands.json
